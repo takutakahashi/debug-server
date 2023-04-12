@@ -25,11 +25,37 @@ func updateData() {
 	}
 }
 
+func logHeaders(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := c.Request()
+		res := c.Response()
+
+		// Log request headers
+		var reqHeaders []string
+		for k, v := range req.Header {
+			reqHeaders = append(reqHeaders, fmt.Sprintf("%s: %s", k, strings.Join(v, ",")))
+		}
+		c.Logger().Infof("Request headers:\n%s", strings.Join(reqHeaders, "\n"))
+
+		err := next(c)
+
+		// Log response headers
+		var resHeaders []string
+		for k, v := range res.Header() {
+			resHeaders = append(resHeaders, fmt.Sprintf("%s: %s", k, strings.Join(v, ",")))
+		}
+		c.Logger().Infof("Response headers:\n%s", strings.Join(resHeaders, "\n"))
+
+		return err
+	}
+}
+
 func main() {
 	e := echo.New()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+  e.Use(logHeaders)
 
 	e.GET("/", func(c echo.Context) error {
 		dataMutex.RLock()
