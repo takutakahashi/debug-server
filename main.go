@@ -16,7 +16,6 @@ var (
 	data      string
 	dataMutex sync.RWMutex
 	reqmap    map[string]string
-	resmap    map[string]string
 )
 
 func updateData() {
@@ -29,43 +28,27 @@ func updateData() {
 	}
 }
 
-func logHeaders(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+func main() {
+	e := echo.New()
+	reqmap = map[string]string{}
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	e.GET("/", func(c echo.Context) error {
+		dataMutex.RLock()
+		defer dataMutex.RUnlock()
+
 		req := c.Request()
-		res := c.Response()
 
 		// Log request headers
 		for k, v := range req.Header {
 			reqmap[k] = strings.Join(v, ",")
 		}
 
-		err := next(c)
-
-		// Log response headers
-		for k, v := range res.Header() {
-			resmap[k] = strings.Join(v, ",")
-		}
-
-		return err
-	}
-}
-
-func main() {
-	e := echo.New()
-	reqmap = map[string]string{}
-	resmap = map[string]string{}
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(logHeaders)
-
-	e.GET("/", func(c echo.Context) error {
-		dataMutex.RLock()
-		defer dataMutex.RUnlock()
-
 		return c.String(http.StatusOK, data)
 	})
 	e.GET("/headers", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]map[string]string{"req": reqmap, "res": resmap})
+		return c.JSON(http.StatusOK, reqmap)
 	})
 
 	go updateData()
