@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"math/rand"
 	"net/http"
+  "strings"
 	"sync"
 	"time"
 )
