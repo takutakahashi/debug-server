@@ -52,7 +52,8 @@ func logHeaders(next echo.HandlerFunc) echo.HandlerFunc {
 
 func main() {
 	e := echo.New()
-
+	reqmap = map[string]string{}
+	resmap = map[string]string{}
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(logHeaders)
