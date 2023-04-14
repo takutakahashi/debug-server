@@ -16,6 +16,7 @@ var (
 	data      string
 	dataMutex sync.RWMutex
 	reqmap    map[string]string
+	resmap    map[string]string
 )
 
 func updateData() {
@@ -24,7 +25,7 @@ func updateData() {
 		data = fmt.Sprintf("Random number: %d", rand.Intn(100))
 		dataMutex.Unlock()
 
-		time.Sleep(10 * time.Minute)
+		time.Sleep(1 * time.Minute)
 	}
 }
 
@@ -39,16 +40,23 @@ func main() {
 		defer dataMutex.RUnlock()
 
 		req := c.Request()
+		res := c.Response()
 
 		// Log request headers
 		for k, v := range req.Header {
 			reqmap[k] = strings.Join(v, ",")
 		}
+		res.Header().Add("Etag", data)
 
 		return c.String(http.StatusOK, data)
 	})
-	e.GET("/headers", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, reqmap)
+	e.GET("/headers/:t", func(c echo.Context) error {
+		t := c.Param("t")
+		if t == "res" {
+			return c.JSON(http.StatusOK, resmap)
+		} else {
+			return c.JSON(http.StatusOK, reqmap)
+		}
 	})
 
 	go updateData()
