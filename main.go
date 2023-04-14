@@ -46,7 +46,7 @@ func main() {
 		for k, v := range req.Header {
 			reqmap[k] = strings.Join(v, ",")
 		}
-		res.Header().Add("Etag", data)
+		res.Header().Set("Etag", data)
 
 		return c.String(http.StatusOK, data)
 	})
