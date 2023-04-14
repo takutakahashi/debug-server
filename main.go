@@ -32,6 +32,7 @@ func updateData() {
 func main() {
 	e := echo.New()
 	reqmap = map[string]string{}
+	resmap = map[string]string{}
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
@@ -41,10 +42,15 @@ func main() {
 
 		req := c.Request()
 		res := c.Response()
-
+		if req.Header.Get("if-none-match") == data {
+			return c.NoContent(304)
+		}
 		// Log request headers
 		for k, v := range req.Header {
 			reqmap[k] = strings.Join(v, ",")
+		}
+		for k, v := range res.Header() {
+			resmap[k] = strings.Join(v, ",")
 		}
 		res.Header().Set("Etag", data)
 
