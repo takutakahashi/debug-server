@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -20,13 +19,9 @@ var (
 )
 
 func updateData() {
-	for {
-		dataMutex.Lock()
-		data = fmt.Sprintf("Random number: %d", rand.Intn(100))
-		dataMutex.Unlock()
-
-		time.Sleep(1 * time.Minute)
-	}
+	dataMutex.Lock()
+	data = fmt.Sprintf("Random number: %d", rand.Intn(100))
+	dataMutex.Unlock()
 }
 
 func main() {
@@ -56,6 +51,10 @@ func main() {
 
 		return c.String(http.StatusOK, data)
 	})
+	e.GET("/update", func(c echo.Context) error {
+		updateData()
+		return c.String(http.StatusOK, data)
+	})
 	e.GET("/headers/:t", func(c echo.Context) error {
 		t := c.Param("t")
 		if t == "res" {
@@ -64,8 +63,6 @@ func main() {
 			return c.JSON(http.StatusOK, reqmap)
 		}
 	})
-
-	go updateData()
 
 	e.Start(":8080")
 }
