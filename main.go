@@ -42,6 +42,7 @@ func main() {
 			if req.Header.Get("if-none-match") == data {
 				return c.NoContent(304)
 			}
+		        res.Header().Set("Etag", data)
 		}
 		// Log request headers
 		for k, v := range req.Header {
@@ -50,7 +51,7 @@ func main() {
 		for k, v := range res.Header() {
 			resmap[k] = strings.Join(v, ",")
 		}
-		res.Header().Set("Etag", data)
+
 
 		return c.String(http.StatusOK, data)
 	})
