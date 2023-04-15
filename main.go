@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
@@ -37,8 +38,10 @@ func main() {
 
 		req := c.Request()
 		res := c.Response()
-		if req.Header.Get("if-none-match") == data {
-			return c.NoContent(304)
+		if os.Getenv("CACHE") != "" {
+			if req.Header.Get("if-none-match") == data {
+				return c.NoContent(304)
+			}
 		}
 		// Log request headers
 		for k, v := range req.Header {
